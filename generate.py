@@ -100,7 +100,7 @@ class CrosswordCreator():
          constraints; in this case, the length of the word.)
         """
         for variable, words in self.domains.items():
-            self.domains[variable] = [word for word in words if len(word) <= variable.length ]
+            self.domains[variable] = [word for word in words if len(word) == variable.length ]
 
     def revise(self, x, y):
         """
@@ -111,7 +111,29 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        raise NotImplementedError
+        
+        cross = self.crossword.overlaps[x,y]
+        isRevised = False
+
+        if cross != None:
+            # words = [word for word in self.domains.get(x) if word[cross[0]] == self.domains.get(y)[0][cross[1]]]
+            # print(words)
+            xWords = self.domains.get(x)
+            yWords = self.domains.get(y)
+            xCross, yCross = cross
+            newWords = set()
+
+            for xWord in xWords:
+                for yWord in yWords:
+                    if xWord != yWord and xWord[xCross] == yWord[yCross]:
+                        newWords.add(xWord)
+            
+            isRevised = len(xWords) > len(newWords)
+            
+            if isRevised:
+                self.domains[x] = newWords
+        
+        return isRevised
 
     def ac3(self, arcs=None):
         """
@@ -122,7 +144,19 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+        if arcs == None:
+            arcs = self.domains
+
+        for current_variable, current_words in self.domains.items():
+            for another_variable, another_words in self.domains.items():
+                if current_variable == another_variable:
+                    continue
+                isRevised = self.revise(current_variable, another_variable)
+                print(isRevised)
+            
+
+        return False
+        
 
     def assignment_complete(self, assignment):
         """
