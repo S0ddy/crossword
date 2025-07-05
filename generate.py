@@ -149,35 +149,25 @@ class CrosswordCreator():
             arcs = self.domains
 
         arc_queue = deque()
-        arc_queue.extend(arcs.items())
+        arc_queue.extend(arcs.keys())
 
         while arc_queue:
-            current_variable, current_words = arc_queue.pop()
+            current_variable = arc_queue.pop()
+            current_words = self.domains.get(current_variable)
             # iterate over current_variable neighbors
             neighbors = self.crossword.neighbors(current_variable)
             for another_variable in neighbors:
                 if current_variable == another_variable:
                     continue
                 isRevised = self.revise(current_variable, another_variable)
-            if isRevised:
-                #check if current words size is 0
-                if len(current_words) == 0:
-                    return False
-                # append all X neighbors 
-                arc_queue.extend(neighbors)              
+                if isRevised:
+                    #check if current words size is 0
+                    if len(current_words) == 0:
+                        return False
+                    # append all current_variable neighbors 
+                    arc_queue.append(another_variable)    
+                              
         return True
-
-
-
-        # for current_variable, current_words in self.domains.items():
-        #     for another_variable, another_words in self.domains.items():
-        #         if current_variable == another_variable:
-        #             continue
-        #         isRevised = self.revise(current_variable, another_variable)
-        #         print(isRevised)
-
-        return False
-        
 
     def assignment_complete(self, assignment):
         """
