@@ -1,3 +1,4 @@
+from collections import deque
 import sys
 
 from crossword import *
@@ -147,13 +148,33 @@ class CrosswordCreator():
         if arcs == None:
             arcs = self.domains
 
-        for current_variable, current_words in self.domains.items():
-            for another_variable, another_words in self.domains.items():
+        arc_queue = deque()
+        arc_queue.extend(arcs.items())
+
+        while arc_queue:
+            current_variable, current_words = arc_queue.pop()
+            # iterate over current_variable neighbors
+            neighbors = self.crossword.neighbors(current_variable)
+            for another_variable in neighbors:
                 if current_variable == another_variable:
                     continue
                 isRevised = self.revise(current_variable, another_variable)
-                print(isRevised)
-            
+            if isRevised:
+                #check if current words size is 0
+                if len(current_words) == 0:
+                    return False
+                # append all X neighbors 
+                arc_queue.extend(neighbors)              
+        return True
+
+
+
+        # for current_variable, current_words in self.domains.items():
+        #     for another_variable, another_words in self.domains.items():
+        #         if current_variable == another_variable:
+        #             continue
+        #         isRevised = self.revise(current_variable, another_variable)
+        #         print(isRevised)
 
         return False
         
