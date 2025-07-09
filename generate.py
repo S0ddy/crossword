@@ -174,14 +174,23 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        raise NotImplementedError
+        if len(assignment) == len(self.domains):
+            for variable, words in self.domains.items():
+                if len(words) != 1:
+                    return False
+            return self.consistent(assignment)
+
+        return False
 
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        # correct length
+        # no conflict between
+        # distinct value
+        return self.ac3() and len(assignment.values()) == len(set(assignment.values()))
 
     def order_domain_values(self, var, assignment):
         """
@@ -200,7 +209,21 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+
+        unassigned = {k: v for k, v in self.domains.items() if k not in assignment}
+        selected_key = None  
+        min_val_size = 10000 
+
+        for k, v in unassigned.items():
+            if min_val_size > len(v):
+                selected_key = k 
+                min_val_size = len(v)
+            elif min_val_size == len(v):
+                k_neighbors = self.crossword.neighbors(k)
+                selected_neighbors = self.crossword.neighbors(selected_key)
+                selected_key = k if len(k_neighbors) > len(selected_neighbors) else selected_key
+                
+        return selected_key 
 
     def backtrack(self, assignment):
         """
@@ -211,7 +234,21 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment       
+        
+        unassigned_var = self.select_unassigned_variable(assignment)
+
+        for value in self.domains.get(unassigned_var):
+            if self.consistent(value):
+                assignment[unassigned_var] = value 
+                result = self.backtrack(assignment)
+                if result != None:
+                    return result 
+                del assignment[unassigned_var]
+        
+
+        return None 
 
 
 def main():
