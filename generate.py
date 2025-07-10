@@ -187,10 +187,11 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        
         # correct length
         # no conflict between
         # distinct value
-        return self.ac3() and len(assignment.values()) == len(set(assignment.values()))
+        return self.ac3() and (assignment == None or len(assignment.values()) == len(set(assignment.values())))
 
     def order_domain_values(self, var, assignment):
         """
@@ -240,7 +241,7 @@ class CrosswordCreator():
         unassigned_var = self.select_unassigned_variable(assignment)
 
         for value in self.domains.get(unassigned_var):
-            if self.consistent(value):
+            if self.consistent(assignment):
                 assignment[unassigned_var] = value 
                 result = self.backtrack(assignment)
                 if result != None:
