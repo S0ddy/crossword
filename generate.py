@@ -86,13 +86,13 @@ class CrosswordCreator():
 
         img.save(filename)
 
-    def solve(self):
+    def solve(self, creator):
         """
         Enforce node and arc consistency, and then solve the CSP.
         """
         self.enforce_node_consistency()
         self.ac3()
-        return self.backtrack(dict())
+        return self.backtrack(dict(), creator)
 
     def enforce_node_consistency(self):
         """
@@ -130,6 +130,7 @@ class CrosswordCreator():
                         newWords.add(xWord)
             
             isRevised = len(xWords) > len(newWords)
+            self.domains[x] = newWords
             
             if isRevised:
                 self.domains[x] = newWords
@@ -159,10 +160,12 @@ class CrosswordCreator():
             for another_variable in neighbors:
                 if current_variable == another_variable:
                     continue
-                isRevised = self.revise(current_variable, another_variable)
+                isRevised = self.revise(another_variable, current_variable)
+                another_words = self.domains.get(another_variable)
+
                 if isRevised:
                     #check if current words size is 0
-                    if len(current_words) == 0:
+                    if len(another_words) == 0:
                         return False
                     # append all current_variable neighbors 
                     arc_queue.append(another_variable)    
@@ -181,11 +184,8 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        
-        # correct length
-        # no conflict between
-        # distinct value
-        return self.ac3() and (assignment == None or len(assignment.values()) == len(set(assignment.values())))
+        result = self.ac3(assignment) and (assignment == None or len(assignment.values()) == len(set(assignment.values())))
+        return result
 
     def order_domain_values(self, var, assignment):
         """
@@ -220,7 +220,7 @@ class CrosswordCreator():
                 
         return selected_key 
 
-    def backtrack(self, assignment):
+    def backtrack(self, assignment, creator):
         """
         Using Backtracking Search, take as input a partial assignment for the
         crossword and return a complete assignment if possible to do so.
@@ -235,9 +235,12 @@ class CrosswordCreator():
         unassigned_var = self.select_unassigned_variable(assignment)
 
         for value in self.domains.get(unassigned_var):
-            if self.consistent(assignment):
+            self.consistent(assignment)
+            if value in self.domains.get(unassigned_var): # problem here. We tool "value" before sorting
                 assignment[unassigned_var] = value 
-                result = self.backtrack(assignment)
+                self.domains[unassigned_var] = {value}
+                creator.save(assignment, 'output.png')
+                result = self.backtrack(assignment, creator)
                 if result != None:
                     return result 
                 del assignment[unassigned_var]
@@ -260,7 +263,7 @@ def main():
     # Generate crossword
     crossword = Crossword(structure, words)
     creator = CrosswordCreator(crossword)
-    assignment = creator.solve()
+    assignment = creator.solve(creator)
 
     # Print result
     if assignment is None:
