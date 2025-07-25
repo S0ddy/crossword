@@ -182,7 +182,6 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        self.ac3()
         # check length of words
         for key, val in assignment.items():
             if key.length != len(val):
@@ -227,7 +226,7 @@ class CrosswordCreator():
                         count = count + 1
             constrNumDict[value] = count
         
-        valuesList = sorted(values, key=lambda x: constrNumDict.get(x))
+        valuesList = sorted(values, key=lambda x: constrNumDict.get(x), reverse=True)
         return valuesList
 
 
@@ -275,6 +274,7 @@ class CrosswordCreator():
         unassigned_var = self.select_unassigned_variable(assignment)
 
         for value in self.order_domain_values(unassigned_var, assignment):
+            self.ac3()
             self.consistent(assignment)
             if value in self.order_domain_values(unassigned_var, assignment): 
                 assignment[unassigned_var] = value 
