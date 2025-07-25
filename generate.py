@@ -42,7 +42,7 @@ class CrosswordCreator():
                 if self.crossword.structure[i][j]:
                     print(letters[i][j] or " ", end="")
                 else:
-                    print("█", end="")
+                    print("", end="")
             print()
 
     def save(self, assignment, filename):
@@ -113,12 +113,10 @@ class CrosswordCreator():
         False if no revision was made.
         """
         
-        cross = self.crossword.overlaps[x,y]
+        cross = self.crossword.overlaps[x, y]
         isRevised = False
 
         if cross != None:
-            # words = [word for word in self.domains.get(x) if word[cross[0]] == self.domains.get(y)[0][cross[1]]]
-            # print(words)
             xWords = self.domains.get(x)
             yWords = self.domains.get(y)
             xCross, yCross = cross
@@ -161,7 +159,7 @@ class CrosswordCreator():
             isRevised = self.revise(x, y)
 
             if isRevised:
-                #check if current words size is 0
+                # check if current words size is 0
                 words = self.domains.get(x)
                 if len(words) == 0:
                     return False
@@ -175,7 +173,7 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        return len(assignment) == len(self.domains);
+        return len(assignment) == len(self.domains)
     
     def consistent(self, assignment):
         """
@@ -220,7 +218,7 @@ class CrosswordCreator():
         for value in values:
             count = 0
             for neighbor in neighbors:
-                cross = self.crossword.overlaps[var,neighbor]
+                cross = self.crossword.overlaps[var, neighbor]
                 for neighbor_value in self.domains.get(neighbor):
                     if value[cross[0]] == neighbor_value[cross[1]]:
                         count = count + 1
@@ -228,10 +226,6 @@ class CrosswordCreator():
         
         valuesList = sorted(values, key=lambda x: constrNumDict.get(x), reverse=True)
         return valuesList
-
-
-        # res = sorted(neighbors, key=lambda x: lcv(var, x[1]))
-        # return res
 
     def select_unassigned_variable(self, assignment):
         """
@@ -251,7 +245,7 @@ class CrosswordCreator():
             if min_val_size > len(v):
                 selected_key = k 
                 min_val_size = len(v)
-            #degree
+            # degree
             elif min_val_size == len(v):
                 k_neighbors = self.crossword.neighbors(k)
                 selected_neighbors = self.crossword.neighbors(selected_key)
@@ -284,7 +278,6 @@ class CrosswordCreator():
                     return result 
                 del assignment[unassigned_var]
         
-
         return None 
 
 
