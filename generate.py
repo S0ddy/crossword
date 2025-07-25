@@ -176,17 +176,18 @@ class CrosswordCreator():
         crossword variable); return False otherwise.
         """
         return len(assignment) == len(self.domains);
-
+    
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        self.ac3()
         # check length of words
         for key, val in assignment.items():
             if key.length != len(val):
                 return False
-    
+
         # overlaps
         for var1 in assignment:
             word1 = assignment[var1]
@@ -201,7 +202,7 @@ class CrosswordCreator():
                         return False
                     
         return True
-    
+
     def order_domain_values(self, var, assignment):
         """
         Return a list of values in the domain of `var`, in order by
@@ -275,7 +276,7 @@ class CrosswordCreator():
 
         for value in self.order_domain_values(unassigned_var, assignment):
             self.consistent(assignment)
-            if value in self.domains.get(unassigned_var): 
+            if value in self.order_domain_values(unassigned_var, assignment): 
                 assignment[unassigned_var] = value 
                 self.domains[unassigned_var] = {value}
                 result = self.backtrack(assignment)
