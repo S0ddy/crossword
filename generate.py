@@ -209,7 +209,29 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        # get the list of all neighbors without already assigned
+        neighbors = [v for v in self.crossword.neighbors(var) if v not in assignment]
+        values = self.domains.get(var)
+        valuesList = []
+
+        # create a dict with value : NumOfConstrains 
+        constrNumDict = {}
+
+        for value in values:
+            count = 0
+            for neighbor in neighbors:
+                cross = self.crossword.overlaps[var,neighbor]
+                for neighbor_value in self.domains.get(neighbor):
+                    if value[cross[0]] == neighbor_value[cross[1]]:
+                        count = count + 1
+            constrNumDict[value] = count
+        
+        valuesList = sorted(values, key=lambda x: constrNumDict.get(x))
+        return valuesList
+
+
+        # res = sorted(neighbors, key=lambda x: lcv(var, x[1]))
+        # return res
 
     def select_unassigned_variable(self, assignment):
         """
@@ -225,9 +247,11 @@ class CrosswordCreator():
         min_val_size = 10000 
 
         for k, v in unassigned.items():
+            # MRV
             if min_val_size > len(v):
                 selected_key = k 
                 min_val_size = len(v)
+            #degree
             elif min_val_size == len(v):
                 k_neighbors = self.crossword.neighbors(k)
                 selected_neighbors = self.crossword.neighbors(selected_key)
@@ -249,7 +273,7 @@ class CrosswordCreator():
         
         unassigned_var = self.select_unassigned_variable(assignment)
 
-        for value in self.domains.get(unassigned_var):
+        for value in self.order_domain_values(unassigned_var, assignment):
             self.consistent(assignment)
             if value in self.domains.get(unassigned_var): 
                 assignment[unassigned_var] = value 
