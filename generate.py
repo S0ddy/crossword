@@ -101,7 +101,7 @@ class CrosswordCreator():
          constraints; in this case, the length of the word.)
         """
         for variable, words in self.domains.items():
-            self.domains[variable] = [word for word in words if len(word) == variable.length ]
+            self.domains[variable] = {word for word in words if len(word) == variable.length}
 
     def revise(self, x, y):
         """
@@ -137,7 +137,7 @@ class CrosswordCreator():
         
         return isRevised
 
-    def ac3(self, arcs=None):
+    def ac3(self, arcs=None): 
         """
         Update `self.domains` such that each variable is arc consistent.
         If `arcs` is None, begin with initial list of all arcs in the problem.
@@ -146,30 +146,28 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        if arcs == None:
-            arcs = self.domains
-
         arc_queue = deque()
-        arc_queue.extend(arcs.keys())
+
+        if arcs is None:
+            for x in self.domains:
+                for y in self.crossword.neighbors(x):
+                    arc_queue.append((x, y))
+        else:
+            arc_queue.extend(arcs)
 
         while arc_queue:
-            current_variable = arc_queue.pop()
-            current_words = self.domains.get(current_variable)
+            x, y = arc_queue.pop()
             # iterate over current_variable neighbors
-            neighbors = self.crossword.neighbors(current_variable)
-            for another_variable in neighbors:
-                if current_variable == another_variable:
-                    continue
-                isRevised = self.revise(another_variable, current_variable)
-                another_words = self.domains.get(another_variable)
+            isRevised = self.revise(x, y)
 
-                if isRevised:
-                    #check if current words size is 0
-                    if len(another_words) == 0:
-                        return False
-                    # append all current_variable neighbors 
-                    arc_queue.append(another_variable)    
-                              
+            if isRevised:
+                #check if current words size is 0
+                words = self.domains.get(x)
+                if len(words) == 0:
+                    return False
+                for z in self.crossword.neighbors(x):
+                    if z != y:
+                        arc_queue.append((z, x))  
         return True
 
     def assignment_complete(self, assignment):
@@ -184,9 +182,26 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        result = self.ac3(assignment) and (assignment == None or len(assignment.values()) == len(set(assignment.values())))
-        return result
-
+        # check length of words
+        for key, val in assignment.items():
+            if key.length != len(val):
+                return False
+    
+        # overlaps
+        for var1 in assignment:
+            word1 = assignment[var1]
+            for var2 in assignment:
+                if var1 == var2:
+                    continue
+                overlap = self.crossword.overlaps.get((var1, var2))
+                if overlap is not None:
+                    i, j = overlap
+                    word2 = assignment[var2]
+                    if word1[i] != word2[j]:
+                        return False
+                    
+        return True
+    
     def order_domain_values(self, var, assignment):
         """
         Return a list of values in the domain of `var`, in order by
@@ -236,7 +251,7 @@ class CrosswordCreator():
 
         for value in self.domains.get(unassigned_var):
             self.consistent(assignment)
-            if value in self.domains.get(unassigned_var): # problem here. We tool "value" before sorting
+            if value in self.domains.get(unassigned_var): 
                 assignment[unassigned_var] = value 
                 self.domains[unassigned_var] = {value}
                 result = self.backtrack(assignment)
